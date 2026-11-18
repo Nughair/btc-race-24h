@@ -10,13 +10,14 @@
 // hold through the recovery with exits wide enough not to be shaken out.
 //
 // Rules (all state is a pure function of the bars seen; no clock, no randomness):
-//   Entry (dip): at least 360 bars of history; the close is more than 1.6% below
+//   Entry (dip): at least 360 bars of history; the close is more than 1.8% below
 //     the highest close of the last 360 bars; the lowest close of the last 120
 //     bars is at least 30 bars old (the fall has stopped) and the close has
 //     bounced more than 0.25% off that low. After an entry that was stopped out,
 //     the next dip must be deeper (2.2%) to count. At most 2 dip entries, a
 //     60-bar cooldown after every exit, and no entries after bar 1380.
-//   Exit (dip): hard stop 1.6% under the fill price, trailing stop 1.9% under
+//   Exit (dip): hard stop 1.6% under the fill price, take-profit 1.75% over the
+//     fill price (bank the bounce before it fades), trailing stop 1.9% under
 //     the best close since entry, or 720 bars held, whichever comes first.
 //   Insurance: if no dip entry has happened by bar 1250 and the last hour is up
 //     more than 0.2%, take one small-risk trade (stop 1.0%, trailing 1.0%, 120
@@ -33,12 +34,13 @@ const SYMBOL_PICK = 0; // the universe holds one symbol; take hello's first
 const DIP_HISTORY = 360; // bars of history before the first dip entry
 const DIP_LOOKBACK = 360; // trailing-high window
 const DIP_LOW_LOOKBACK = 120; // trailing-low window
-const DIP_DRAWDOWN = 0.016; // close this far under the trailing high
+const DIP_DRAWDOWN = 0.018; // close this far under the trailing high
 const DIP_DRAWDOWN_AFTER_STOP = 0.022; // deeper, after a stopped-out entry
 const DIP_BOUNCE = 0.0025; // close this far above the trailing low
 const DIP_LOW_AGE = 30; // the low must be at least this many bars old
 const DIP_MAX_ENTRIES = 2;
 const DIP_STOP = 0.016; // hard stop under the fill price
+const DIP_TAKE_PROFIT = 0.0175; // bank the bounce at this gain over the fill price
 const DIP_TRAIL = 0.019; // trailing stop under the best close since entry
 const DIP_MAX_HOLD = 720; // bars
 const COOLDOWN = 60; // bars after an exit before any new entry
@@ -110,8 +112,11 @@ await runBars({
       const stop = holding.kind === 'dip' ? DIP_STOP : INS_STOP;
       const trail = holding.kind === 'dip' ? DIP_TRAIL : INS_TRAIL;
       const maxHold = holding.kind === 'dip' ? DIP_MAX_HOLD : INS_MAX_HOLD;
+      const takeProfit =
+        holding.kind === 'dip' && close >= holding.entryPrice * (1 + DIP_TAKE_PROFIT);
       const exit =
         close <= holding.entryPrice * (1 - stop) ||
+        takeProfit ||
         close <= holding.bestClose * (1 - trail) ||
         i - holding.entryBar >= maxHold;
       if (exit) {

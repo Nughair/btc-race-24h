@@ -11,14 +11,14 @@ protocol, starting from 1,000 USDC of paper money, long only.
 The bot is deliberately patient. A full-size round trip on this pool costs
 about 26 bps in fees, slippage and price impact, so strategies that trade
 often bleed out. This one buys only after a real washout — the close more
-than 1.6% under the trailing 360-bar high, the trailing 120-bar low at least
+than 1.8% under the trailing 360-bar high, the trailing 120-bar low at least
 30 bars old, and the close already bounced more than 0.25% off that low —
-then holds through the recovery with a 1.6% hard stop, a 1.9% trailing stop
-and a 720-bar time stop. At most two dip entries per window; if none has
-happened by bar 1250, one small-risk insurance trade keeps the day from
-ending tradeless. On the published dev window the kit's own grader scores it
-+$8.92 net with a 1.60% maximum drawdown (still +$8.11 with every fee
-doubled).
+then holds through the recovery with a 1.6% hard stop, a 1.75% take-profit
+that banks the bounce, a 1.9% trailing stop and a 720-bar time stop. At most
+two dip entries per window; if none has happened by bar 1250, one small-risk
+insurance trade keeps the day from ending tradeless. On the published dev
+window the kit's own grader scores it +$16.78 net with a 0.64% maximum
+drawdown (still +$15.97 with every fee doubled).
 
 ## Run it
 
